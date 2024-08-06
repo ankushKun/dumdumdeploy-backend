@@ -53,6 +53,12 @@ app.post('/deploy', async (req, res) => {
     if (!buildCommand) return res.status(400).send('Build Command is required');
     if (!outputDir) return res.status(400).send('Output Directory is required');
 
+    // remove trailing .git and / from repository url
+    const folderName = `${repository}`.replace(/\.git|\/$/, '').split('/').pop();
+    console.log('Folder name:', folderName);
+
+    fs.writeFileSync(`./builds/${folderName}/log.txt`, '');
+
     // 1. create a docker container
     // 2. run an isolated build
     // 3. move the output folder outside the container in ./builds folder
@@ -81,9 +87,6 @@ app.post('/deploy', async (req, res) => {
     console.log('Created container');
     await container.start();
 
-    // remove trailing .git and / from repository url
-    const folderName = `${repository}`.replace(/\.git|\/$/, '').split('/').pop();
-    console.log('Folder name:', folderName);
 
     var containerCommand = `cd /home/node;
     rm -rf /home/node/${folderName}/${outputDir};
