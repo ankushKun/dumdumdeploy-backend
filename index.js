@@ -59,6 +59,9 @@ app.post('/deploy', async (req, res) => {
     const folderName = `${repository}`.replace(/\.git|\/$/, '').split('/').pop();
     console.log('Folder name:', folderName);
 
+    if (!fs.existsSync(`./builds/${folderName}`)) {
+        fs.mkdirSync(`./builds/${folderName}`, { recursive: true });
+    }
     fs.writeFileSync(`./builds/${folderName}/log.txt`, '');
 
     // 1. create a docker container
