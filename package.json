@@ -1,0 +1,20 @@
+{
+  "name": "dumdumdeploy-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@irys/sdk": "^0.2.9",
+    "dockerode": "^4.0.2",
+    "express": "^4.19.2",
+    "nodemon": "^3.1.4"
+  }
+}
