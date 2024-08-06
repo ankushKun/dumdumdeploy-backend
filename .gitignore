@@ -1,4 +1,5 @@
 wallet.json
+_wallet.json
 .env
 builds
 node_modules

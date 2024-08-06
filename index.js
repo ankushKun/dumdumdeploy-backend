@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import dockerode from "dockerode";
 import fs from "fs"
 import Irys from "@irys/sdk";
@@ -7,15 +8,15 @@ const PORT = 3001;
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 
-async function deployFolder(path) {
+export async function deployFolder(path) {
     console.log("Deploying folder at", path);
 
     const jwk = JSON.parse(fs.readFileSync('./wallet.json', 'utf-8'));
     const irys = new Irys({ url: 'https://turbo.ardrive.io', token: 'arweave', key: jwk });
     irys.uploader.useChunking = false;
-
 
 
     const txResult = await irys.uploadFolder(path, {
@@ -45,12 +46,12 @@ app.get('/', (req, res) => {
 
 app.post('/deploy', async (req, res) => {
     console.log('Request:', req.body);
-    const { repository, installCommand, buildCommand, outputDirectory } = req.body;
+    const { repository, installCommand, buildCommand, outputDir } = req.body;
 
     if (!repository) return res.status(400).send('Repository is required');
     if (!installCommand) return res.status(400).send('Install Command is required');
     if (!buildCommand) return res.status(400).send('Build Command is required');
-    if (!outputDirectory) return res.status(400).send('Output Directory is required');
+    if (!outputDir) return res.status(400).send('Output Directory is required');
 
     // 1. create a docker container
     // 2. run an isolated build
@@ -85,14 +86,14 @@ app.post('/deploy', async (req, res) => {
     console.log('Folder name:', folderName);
 
     var containerCommand = `cd /home/node;
-    rm -rf /home/node/${folderName}/${outputDirectory};
+    rm -rf /home/node/${folderName}/${outputDir};
     echo "" > /home/node/${folderName}/log.txt;
     git clone ${repository} ${folderName};
     cd /home/node/${folderName};
     ${installCommand};
     ${buildCommand};
     mkdir /home/node/builds/${folderName};
-    cp -r /home/node/${folderName}/${outputDirectory} /home/node/builds/${folderName}`;
+    cp -r /home/node/${folderName}/${outputDir} /home/node/builds/${folderName}`;
 
     if (installCommand.startsWith('pnpm')) {
         containerCommand = `npm i -g pnpm; ${containerCommand}`;
@@ -130,11 +131,11 @@ app.post('/deploy', async (req, res) => {
             console.log(err)
             console.log('Exec end');
             await container.commit();
-            if (!fs.existsSync(`./builds/${folderName}/${outputDirectory}/index.html`)) {
+            if (!fs.existsSync(`./builds/${folderName}/${outputDir}/index.html`)) {
                 return res.status(500).send('index.html doesnot exist in build');
             }
             try {
-                const dres = await deployFolder(`./builds/${folderName}/${outputDirectory}`);
+                const dres = await deployFolder(`./builds/${folderName}/${outputDir}`);
                 res.send(dres);
             } catch (e) {
                 res.status(400).send(e.message);
@@ -152,6 +153,8 @@ app.get('/logs/:folder', (req, res) => {
     res.send(log);
 })
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log('Server is running on port ' + PORT);
 })
+server.setTimeout(30 * 60 * 1000); // 30 minutes
+server.keepAliveTimeout = 30 * 60 * 1000; // 30 minutes
