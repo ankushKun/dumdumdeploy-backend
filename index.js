@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import express from "express";
 import cors from "cors";
 import dockerode from "dockerode";
@@ -41,7 +43,7 @@ export async function deployFolder(path) {
 }
 
 app.get('/', (req, res) => {
-    res.send('Hello World');
+    res.send('<pre>DumDumDeploy Builder Running!</pre>');
 })
 
 app.post('/deploy', async (req, res) => {
@@ -152,8 +154,12 @@ app.post('/deploy', async (req, res) => {
 
 app.get('/logs/:folder', (req, res) => {
     const { folder } = req.params;
-    const log = fs.readFileSync(`./builds/${folder}/log.txt`, 'utf-8');
-    res.send(log);
+    try {
+        const log = fs.readFileSync(`./builds/${folder}/log.txt`, 'utf-8');
+        res.send(log);
+    } catch (e) {
+        res.status(200).send('Log not found');
+    }
 })
 
 const server = app.listen(PORT, () => {
