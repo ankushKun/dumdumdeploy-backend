@@ -137,13 +137,19 @@ app.post('/deploy', async (req, res) => {
                 const dres = await deployFolder(`./builds/${folderName}/${outputDirectory}`);
                 res.send(dres);
             } catch (e) {
-                return res.status(400).send(e.message);
+                res.status(400).send(e.message);
             }
 
             await container.stop();
             await container.remove();
         })
     })
+})
+
+app.get('/logs/:folder', (req, res) => {
+    const { folder } = req.params;
+    const log = fs.readFileSync(`./builds/${folder}/log.txt`, 'utf-8');
+    res.send(log);
 })
 
 app.listen(PORT, () => {
