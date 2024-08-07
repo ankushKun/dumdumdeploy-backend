@@ -60,7 +60,7 @@ app.post('/deploy', async (req, res) => {
     console.log('Folder name:', folderName);
 
     if (!fs.existsSync(`./builds/${folderName}`)) {
-        fs.mkdirSync(`./builds/${folderName}`, { recursive: true });
+        fs.mkdirSync(`./builds/${folderName}`, { recursive: true, force: true });
     }
     fs.writeFileSync(`./builds/${folderName}/log.txt`, '');
 
